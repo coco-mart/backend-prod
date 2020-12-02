@@ -87,9 +87,17 @@
         "sequelize-cli": "^6.2.0",
         "supertest": "4.0.2",
         "winston": "3.2.1",
-        "@babel/register": "^7.0.0",
+        "@babel/core": "^7.2.2",
+        "@babel/plugin-proposal-export-default-from": "^7.2.0",
+        "@babel/plugin-proposal-export-namespace-from": "^7.2.0",
+        "@babel/plugin-proposal-function-bind": "^7.2.0",
+        "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
+        "@babel/plugin-syntax-dynamic-import": "^7.2.0",
         "@babel/plugin-syntax-export-namespace-from": "^7.2.0",
-        "@babel/plugin-syntax-dynamic-import": "^7.2.0"
+        "@babel/plugin-transform-modules-commonjs": "^7.5.0",
+        "@babel/preset-env": "^7.2.0",
+        "@babel/preset-react": "^7.0.0",
+        "@babel/register": "^7.0.0"
     },
     "devDependencies": {
         "@babel/core": "^7.2.2",
