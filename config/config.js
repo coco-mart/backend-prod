@@ -9,7 +9,7 @@ const envVarsSchema = Joi.object({
         .allow(["development", "production", "test", "provision"])
         .default("development"),
     PORT: Joi.number().default(4000),
-    API_VERSION: Joi.string().default("1.0").description("API Version"),
+    API_VERSION: Joi.string().default("1").description("API Version"),
     D7_API: Joi.string().required(),
     JWT_SECRET: Joi.string()
         .required()
