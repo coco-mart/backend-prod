@@ -24,9 +24,6 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING,
                 unique: true,
             },
-            last_generated: {
-                type: DataTypes.DATE,
-            },
             attempts: { type: DataTypes.INTEGER, defaultValue: 0 },
         },
         {

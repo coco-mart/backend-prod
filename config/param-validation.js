@@ -1,28 +1,33 @@
-import Joi from 'joi';
+import Joi from "joi";
 
 export default {
     // POST /api/users
-    createUser: {
+    sendotp: {
         body: {
-            username: Joi.string().required(),
+            mobile: Joi.string()
+                .required("Mobile number is required")
+                .length(10),
+        },
+    },
+
+    // POST /api/users/login
+    login: {
+        body: {
+            mobile: Joi.string().required().length(10),
+            otp: Joi.string().required().length(6),
         },
     },
 
     // UPDATE /api/users/:userId
     updateUser: {
         body: {
-            username: Joi.string().required(),
-        },
-        params: {
-            userId: Joi.string().hex().required(),
-        },
-    },
-
-    // POST /api/auth/login
-    login: {
-        body: {
-            username: Joi.string().required(),
-            password: Joi.string().required(),
+            user: Joi.object({
+                pincode: Joi.string()
+                    .allow(null)
+                    .regex(/^[0-9]+$/)
+                    .length(6),
+                username: Joi.string().allow(null),
+            }),
         },
     },
 };
