@@ -72,9 +72,10 @@ async function login(req, res, next) {
  */
 async function update(req, res, next) {
     const { user } = req;
+    const { username, pincode } = req.body;
     const dbUser = await UserProfile.findByPk(user.mobile);
-    dbUser.username = user.username;
-    dbUser.pincode = user.pincode;
+    dbUser.username = username;
+    dbUser.pincode = pincode;
     dbUser
         .save()
         .then((savedUser) => res.json(savedUser))
@@ -106,8 +107,25 @@ function remove(req, res, next) {
         .catch((e) => next(e));
 }
 
+/**
+ * This is a protected route. Will return random number only if jwt token is provided in header.
+ * @param req
+ * @param res
+ * @returns {*}
+ */
+async function verifyUser(req, res) {
+    const { user } = req;
+    const dbUser = await UserProfile.findByPk(user.mobile);
+    return res.json({
+        user: dbUser,
+        authorized: true,
+        num: Math.random() * 100,
+    });
+}
+
 export default {
     sendotp,
     login,
     update,
+    verifyUser,
 };

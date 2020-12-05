@@ -20,6 +20,14 @@ router
 
 router.route("/login").post(validate(paramValidation.login), userCtrl.login);
 
+router.route("/verify").get(
+    expressJwt({
+        secret: config.jwtSecret,
+        algorithms: ["HS256"],
+    }),
+    userCtrl.verifyUser
+);
+
 // router
 //     .route("/:userId")
 //     .get(userCtrl.get)
