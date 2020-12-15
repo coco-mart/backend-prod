@@ -14,6 +14,7 @@ const envVarsSchema = Joi.object({
     JWT_SECRET: Joi.string()
         .required()
         .description("JWT Secret required to sign"),
+    GOOGLE_MAPS_API_KEY: Joi.string().required(),
 })
     .unknown()
     .required();
@@ -35,6 +36,7 @@ const config = {
     apiVersion: envVars.API_VERSION,
     jwtSecret: envVars.JWT_SECRET,
     d7Api: envVars.D7_API,
+    mapsApi: envVars.GOOGLE_MAPS_API_KEY,
 };
 
 export default config;
