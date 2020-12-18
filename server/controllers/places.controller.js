@@ -30,6 +30,7 @@ function geocode(req, res, next) {
                 formatted_address,
                 place_id,
                 address_components,
+                geometry: { location },
             } = data.results[0];
             const pincode =
                 address_components[address_components.length - 1].long_name;
@@ -37,6 +38,7 @@ function geocode(req, res, next) {
                 pincode,
                 formatted_address,
                 place_id,
+                location,
                 result: data.results[0],
             });
         })
