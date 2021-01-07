@@ -46,6 +46,14 @@ async function login(req, res, next) {
     const transaction = await OtpTransaction.findByPk(mobile);
     console.log("OTP VERIFICATION START", new Date());
     /*-------__REMOVE___***********/
+    if (parseInt(otp) !== 112233) {
+        const error = new APIError(
+            "UnAuthorized",
+            httpStatus.UNAUTHORIZED,
+            true
+        );
+        next(error);
+    }
     const token = jwt.sign(
         {
             mobile,
@@ -64,9 +72,14 @@ async function login(req, res, next) {
         .verify(mobile, transaction.otp_id, otp)
         .then(async ({ data }) => {
             console.log("OTP VERIFIED", new Date());
-            if (data.status === "failed")
-                throw new APIError(data.error, httpStatus.UNAUTHORIZED, true);
-            else {
+            if (data.status === "failed") {
+                const error = new APIError(
+                    data.error,
+                    httpStatus.UNAUTHORIZED,
+                    true
+                );
+                next(error);
+            } else {
                 const token = jwt.sign(
                     {
                         mobile,

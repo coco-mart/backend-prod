@@ -1,5 +1,6 @@
 import express from "express";
 import userRoutes from "./user.route";
+import postRoutes from "./post.route";
 import placesRoutes from "./places.route";
 import "regenerator-runtime/runtime";
 
@@ -12,5 +13,7 @@ router.get("/health-check", (req, res) => res.send("OK"));
 router.use("/users", userRoutes);
 
 router.use("/places", placesRoutes);
+
+router.use("/posts", postRoutes);
 
 export default router;
