@@ -21,4 +21,25 @@ router.route("/").get(
     postCtrl.getPosts
 );
 
+router
+    .route("/:id")
+    .get(
+        expressJwt({
+            secret: config.jwtSecret,
+        }),
+        postCtrl.getPostById
+    )
+    .patch(
+        expressJwt({
+            secret: config.jwtSecret,
+        }),
+        postCtrl.update
+    )
+    .delete(
+        expressJwt({
+            secret: config.jwtSecret,
+        }),
+        postCtrl.remove
+    );
+
 export default router;
