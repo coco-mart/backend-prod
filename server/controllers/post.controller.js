@@ -1,6 +1,7 @@
 import { posts as Post } from "../models";
 import { getPlaceInfo } from "./places.controller";
 import httpStatus from "http-status";
+import { Op } from "sequelize";
 
 /*
  * Create new post
@@ -59,6 +60,22 @@ async function getPostById(req, res, next) {
 }
 
 /*
+ * Fetch all posts
+ */
+
+async function getAllPosts(req, res, next) {
+    const { mobile } = req.user;
+    const posts = await Post.findAll({
+        where: {
+            mobile: {
+                [Op.ne]: mobile,
+            },
+        },
+    });
+    res.json({ posts });
+}
+
+/*
  * Update post by id
  */
 async function update(req, res, next) {
@@ -110,4 +127,5 @@ export default {
     getPostById,
     remove,
     update,
+    getAllPosts,
 };
