@@ -1,5 +1,6 @@
 "use strict";
 const { Model } = require("sequelize");
+const user_profiles = require("./user_profiles");
 module.exports = (sequelize, DataTypes) => {
     class posts extends Model {
         /**
@@ -9,6 +10,11 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate(models) {
             // define association here
+            posts.belongsTo(models.user_profiles, {
+                foreignKey: {
+                    name: "mobile",
+                },
+            });
         }
     }
     posts.init(

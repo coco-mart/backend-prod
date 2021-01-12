@@ -1,4 +1,6 @@
 import { posts as Post } from "../models";
+import { user_profiles as UserProfile } from "../models";
+
 import { getPlaceInfo } from "./places.controller";
 import httpStatus from "http-status";
 import { Op } from "sequelize";
@@ -70,6 +72,10 @@ async function getAllPosts(req, res, next) {
             mobile: {
                 [Op.ne]: mobile,
             },
+        },
+        include: {
+            model: UserProfile,
+            attributes: ["username"],
         },
     });
     res.json({ posts });
