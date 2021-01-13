@@ -67,11 +67,18 @@ async function getPostById(req, res, next) {
 
 async function getAllPosts(req, res, next) {
     const { mobile } = req.user;
+    const { product } = req.query;
     const posts = await Post.findAll({
         where: {
             mobile: {
                 [Op.ne]: mobile,
             },
+            product:
+                !product || product == "all"
+                    ? {
+                          [Op.not]: product,
+                      }
+                    : product,
         },
         include: {
             model: UserProfile,
