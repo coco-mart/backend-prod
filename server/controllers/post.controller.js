@@ -4,22 +4,20 @@ import { user_profiles as UserProfile } from "../models";
 import { getPlaceInfo } from "./places.controller";
 import httpStatus from "http-status";
 import { Op } from "sequelize";
+import { uploadImages } from "../services/s3.service";
+import APIError from "../helpers/APIError";
 
 /*
  * Create new post
  */
 async function create(req, res, next) {
     const { mobile } = req.user;
-    const { title, place_id } = req.body.location;
     let processedData = {
         ...req.body,
-        place_title: title,
-        place_id,
         mobile,
     };
-    delete processedData.location;
     delete processedData.images;
-    await getPlaceInfo(place_id)
+    await getPlaceInfo(processedData.place_id)
         .then(({ data }) => {
             const { address_components, geometry } = data.result;
             const locality = address_components.find((component) =>
@@ -30,8 +28,24 @@ async function create(req, res, next) {
             processedData.lng = geometry.location.lng;
         })
         .catch((err) => next(err));
-    const createdPost = await Post.create(processedData);
-    res.json(createdPost);
+    let createdPost = await Post.create(processedData);
+    if (createdPost.id) {
+        let imageLocations = await Promise.all(
+            uploadImages(mobile, createdPost.id, req.files)
+        );
+        imageLocations = imageLocations.map(({ Location }) => Location);
+        createdPost.images = imageLocations;
+        createdPost = await createdPost.save();
+        res.json({ createdPost });
+    } else {
+        next(
+            new APIError(
+                "Something went wrong",
+                httpStatus.INTERNAL_SERVER_ERROR,
+                true
+            )
+        );
+    }
 }
 
 /*
