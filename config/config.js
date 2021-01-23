@@ -18,6 +18,7 @@ const envVarsSchema = Joi.object({
     AWS_ACCESS_KEY_ID: Joi.string().required(),
     AWS_SECRET_ACCESS_KEY: Joi.string().required(),
     OTP_EXPIRY: Joi.number().default(900),
+    S3_BUCKET_NAME: Joi.string().required(),
 })
     .unknown()
     .required();
