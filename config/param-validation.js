@@ -36,10 +36,8 @@ export default {
             product: Joi.string().required(),
             quantity: Joi.number().required(),
             price: Joi.number().required(),
-            location: Joi.object({
-                place_id: Joi.string().required(),
-                title: Joi.string().allow(""),
-            }),
+            place_id: Joi.string().required(),
+            place_title: Joi.string().allow(""),
             pincode: Joi.string().allow(""),
             description: Joi.string().allow(""),
         },
