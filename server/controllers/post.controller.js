@@ -2,9 +2,9 @@ import { posts as Post } from "../models";
 import { user_profiles as UserProfile } from "../models";
 
 import { getPlaceInfo } from "./places.controller";
-import httpStatus from "http-status";
+import httpStatus, { BAD_REQUEST } from "http-status";
 import { Op } from "sequelize";
-import { uploadImages } from "../services/s3.service";
+import { emptyS3Directory, uploadImages } from "../services/s3.service";
 import APIError from "../helpers/APIError";
 
 /*
@@ -107,16 +107,12 @@ async function getAllPosts(req, res, next) {
  */
 async function update(req, res, next) {
     const { mobile } = req.user;
-    const { id } = req.params;
-    const { title, placeId: place_id } = req.body.location;
     let processedData = {
         ...req.body,
-        place_title: title,
-        place_id,
+        mobile,
     };
-    delete processedData.location;
-    delete processedData.images;
-    await getPlaceInfo(place_id)
+    const { id } = req.params;
+    await getPlaceInfo(processedData.place_id)
         .then(({ data }) => {
             const { address_components, geometry } = data.result;
             const locality = address_components.find((component) =>
@@ -133,7 +129,11 @@ async function update(req, res, next) {
             mobile,
         },
     })
-        .then((data) => res.json(data))
+        .then((data) => {
+            if (data[0]) res.json(data);
+            else
+                next(new APIError("Bad Request", httpStatus.BAD_REQUEST, true));
+        })
         .catch((err) => next(err));
 }
 
@@ -144,7 +144,10 @@ async function remove(req, res, next) {
     const { mobile } = req.user;
     const { id } = req.params;
     Post.destroy({ where: { id, mobile } })
-        .then(() => res.json(httpStatus["204_MESSAGE"]))
+        .then(async () => {
+            await emptyS3Directory(mobile, id);
+            res.json(httpStatus["204_MESSAGE"]);
+        })
         .catch((err) => next(err));
 }
 
