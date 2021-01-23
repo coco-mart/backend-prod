@@ -15,6 +15,9 @@ const envVarsSchema = Joi.object({
         .required()
         .description("JWT Secret required to sign"),
     GOOGLE_MAPS_API_KEY: Joi.string().required(),
+    AWS_ACCESS_KEY_ID: Joi.string().required(),
+    AWS_SECRET_ACCESS_KEY: Joi.string().required(),
+    OTP_EXPIRY: Joi.number().default(900),
 })
     .unknown()
     .required();
