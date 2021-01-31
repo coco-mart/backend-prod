@@ -84,6 +84,7 @@ async function getPostById(req, res, next) {
 async function getAllPosts(req, res, next) {
     const { mobile } = req.user;
     const { product, location } = req.query;
+    const parsedLocation = Object.values(JSON.parse(location));
     const posts = await Post.findAll({
         where: {
             mobile: {
@@ -102,7 +103,11 @@ async function getAllPosts(req, res, next) {
                     db.Sequelize.fn(
                         "ST_Distance",
                         db.Sequelize.col("location"),
-                        db.Sequelize.fn("ST_MakePoint", location.lat, location.lng)
+                        db.Sequelize.fn(
+                            "ST_MakePoint",
+                            parsedLocation.lat,
+                            parsedLocation.lng
+                        )
                     ),
                     "distance",
                 ],
@@ -114,6 +119,7 @@ async function getAllPosts(req, res, next) {
         },
         order: db.Sequelize.literal("distance ASC"),
     });
+    console.log(posts);
     res.json({ posts });
 }
 
