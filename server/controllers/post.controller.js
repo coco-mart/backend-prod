@@ -84,7 +84,8 @@ async function getPostById(req, res, next) {
 async function getAllPosts(req, res, next) {
     const { mobile } = req.user;
     const { product, location } = req.query;
-    const parsedLocation = Object.values(JSON.parse(location));
+    const parsedLocation = JSON.parse(location);
+    console.log("p", parsedLocation.lat, parsedLocation.lng);
     const posts = await Post.findAll({
         where: {
             mobile: {
