@@ -31,8 +31,7 @@ module.exports = (sequelize, DataTypes) => {
             place_id: DataTypes.STRING,
             place_title: DataTypes.STRING,
             description: DataTypes.STRING,
-            lat: DataTypes.DOUBLE,
-            lng: DataTypes.DOUBLE,
+            location: DataTypes.GEOGRAPHY("POINT", 4326),
         },
         {
             sequelize,

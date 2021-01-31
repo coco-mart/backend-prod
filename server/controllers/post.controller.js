@@ -1,12 +1,11 @@
 import { posts as Post } from "../models";
 import { user_profiles as UserProfile } from "../models";
-
 import { getPlaceInfo } from "./places.controller";
-import httpStatus, { BAD_REQUEST } from "http-status";
+import httpStatus from "http-status";
 import { Op } from "sequelize";
 import { emptyS3Directory, uploadImages } from "../services/s3.service";
 import APIError from "../helpers/APIError";
-
+import db from "../models/index";
 /*
  * Create new post
  */
@@ -24,8 +23,11 @@ async function create(req, res, next) {
                 component.types.includes("locality")
             ).long_name;
             processedData.place_title = locality || title;
-            processedData.lat = geometry.location.lat;
-            processedData.lng = geometry.location.lng;
+            const point = {
+                type: "Point",
+                coordinates: [geometry.location.lat, geometry.location.lng],
+            };
+            processedData.location = point;
         })
         .catch((err) => next(err));
     let createdPost = await Post.create(processedData);
@@ -81,7 +83,7 @@ async function getPostById(req, res, next) {
 
 async function getAllPosts(req, res, next) {
     const { mobile } = req.user;
-    const { product } = req.query;
+    const { product, location } = req.query;
     const posts = await Post.findAll({
         where: {
             mobile: {
@@ -94,10 +96,23 @@ async function getAllPosts(req, res, next) {
                       }
                     : product,
         },
+        attributes: {
+            include: [
+                [
+                    db.Sequelize.fn(
+                        "ST_Distance",
+                        db.Sequelize.col("location"),
+                        db.Sequelize.fn("ST_MakePoint", location.lat, location.lng)
+                    ),
+                    "distance",
+                ],
+            ],
+        },
         include: {
             model: UserProfile,
             attributes: ["username"],
         },
+        order: db.Sequelize.literal("distance ASC"),
     });
     res.json({ posts });
 }
