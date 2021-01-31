@@ -21,8 +21,12 @@ async function create(req, res, next) {
             const { address_components, geometry } = data.result;
             const locality = address_components.find((component) =>
                 component.types.includes("locality")
-            ).long_name;
-            processedData.place_title = locality || title;
+            );
+
+            processedData.place_title = locality
+                ? locality.long_name
+                : processedData.place_title;
+
             const point = {
                 type: "Point",
                 coordinates: [geometry.location.lat, geometry.location.lng],
@@ -30,7 +34,9 @@ async function create(req, res, next) {
             processedData.location = point;
         })
         .catch((err) => next(err));
+
     let createdPost = await Post.create(processedData);
+
     if (createdPost.id) {
         let imageLocations = await Promise.all(
             uploadImages(mobile, createdPost.id, req.files)
