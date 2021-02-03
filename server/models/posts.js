@@ -1,6 +1,5 @@
 "use strict";
 const { Model } = require("sequelize");
-const user_profiles = require("./user_profiles");
 module.exports = (sequelize, DataTypes) => {
     class posts extends Model {
         /**
@@ -32,6 +31,8 @@ module.exports = (sequelize, DataTypes) => {
             place_title: DataTypes.STRING,
             description: DataTypes.STRING,
             location: DataTypes.GEOGRAPHY("POINT", 4326),
+            createdAt: DataTypes.DATE,
+            updatedAt: DataTypes.DATE,
         },
         {
             sequelize,
