@@ -89,9 +89,8 @@ async function getPostById(req, res, next) {
 
 async function getAllPosts(req, res, next) {
     const { mobile } = req.user;
-    const { product, location } = req.query;
+    const { product, location, sortBy } = req.query;
     const parsedLocation = JSON.parse(location);
-    console.log("p", parsedLocation.lat, parsedLocation.lng);
     const posts = await Post.findAll({
         where: {
             mobile: {
@@ -124,7 +123,9 @@ async function getAllPosts(req, res, next) {
             model: UserProfile,
             attributes: ["username"],
         },
-        order: db.Sequelize.literal("distance ASC"),
+        order: sortBy.includes("created")
+            ? [[sortBy.split(" ")]]
+            : db.Sequelize.literal(sortBy),
     });
     console.log(posts);
     res.json({ posts });
