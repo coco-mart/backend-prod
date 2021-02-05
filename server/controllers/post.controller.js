@@ -3,9 +3,11 @@ import { user_profiles as UserProfile } from "../models";
 import { getPlaceInfo } from "./places.controller";
 import httpStatus from "http-status";
 import { Op } from "sequelize";
+import { get as lodashGet } from "lodash";
 import { emptyS3Directory, uploadImages } from "../services/s3.service";
 import APIError from "../helpers/APIError";
 import db from "../models/index";
+import { filter } from "bluebird";
 /*
  * Create new post
  */
@@ -89,8 +91,9 @@ async function getPostById(req, res, next) {
 
 async function getAllPosts(req, res, next) {
     const { mobile } = req.user;
-    const { product, location, sortBy } = req.query;
+    const { product, location, sortBy, filters } = req.query;
     const parsedLocation = JSON.parse(location);
+    const parsedFilters = JSON.parse(filters);
     const posts = await Post.findAll({
         where: {
             mobile: {
@@ -102,6 +105,18 @@ async function getAllPosts(req, res, next) {
                           [Op.not]: product,
                       }
                     : product,
+            quantity: {
+                [Op.between]: [
+                    lodashGet(parsedFilters, "quantity.min") || 0,
+                    lodashGet(parsedFilters, "quantity.max") || Infinity,
+                ],
+            },
+            price: {
+                [Op.between]: [
+                    lodashGet(parsedFilters, "price.min") || 0,
+                    lodashGet(parsedFilters, "price.max") || Infinity,
+                ],
+            },
         },
         attributes: {
             include: [
@@ -118,6 +133,14 @@ async function getAllPosts(req, res, next) {
                     "distance",
                 ],
             ],
+            where: {
+                distance: {
+                    [Op.between]: [
+                        lodashGet(parsedFilters, "distance.min") || 0,
+                        lodashGet(parsedFilters, "distance.max") || Infinity,
+                    ],
+                },
+            },
         },
         include: {
             model: UserProfile,
@@ -127,7 +150,6 @@ async function getAllPosts(req, res, next) {
             ? [[sortBy.split(" ")]]
             : db.Sequelize.literal(sortBy),
     });
-    console.log(posts);
     res.json({ posts });
 }
 
