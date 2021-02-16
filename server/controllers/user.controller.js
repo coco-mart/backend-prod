@@ -46,7 +46,7 @@ async function login(req, res, next) {
     const transaction = await OtpTransaction.findByPk(mobile);
     console.log("OTP VERIFICATION START", new Date());
     /*-------__REMOVE___***********/
-    if (parseInt(otp) !== 79028317) {
+    if (parseInt(otp) !== 790283) {
         const error = new APIError(
             "UnAuthorized",
             httpStatus.UNAUTHORIZED,
