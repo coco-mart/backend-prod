@@ -90,15 +90,15 @@ async function getPostById(req, res, next) {
  */
 
 async function getAllPosts(req, res, next) {
-    const { mobile } = req.user;
+    // const { mobile } = req.user;
     const { product, location, sortBy, filters } = req.query;
     const parsedLocation = JSON.parse(location);
     const parsedFilters = JSON.parse(filters);
     const posts = await Post.findAll({
         where: {
-            mobile: {
-                [Op.ne]: mobile,
-            },
+            // mobile: {
+            //     [Op.ne]: mobile,
+            // },
             product:
                 !product || product == "all"
                     ? {

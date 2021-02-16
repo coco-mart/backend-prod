@@ -30,12 +30,7 @@ router.route("/").get(
     postCtrl.getPosts
 );
 
-router.route("/all").get(
-    expressJwt({
-        secret: config.jwtSecret,
-    }),
-    postCtrl.getAllPosts
-);
+router.route("/all").get(postCtrl.getAllPosts);
 
 router
     .route("/:id")
