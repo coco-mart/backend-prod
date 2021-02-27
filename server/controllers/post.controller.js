@@ -90,9 +90,13 @@ async function getPostById(req, res, next) {
  */
 
 async function getAllPosts(req, res, next) {
-    // const { mobile } = req.user;
     const { product, location, sortBy, filters } = req.query;
-    const parsedLocation = JSON.parse(location);
+    // const parsedLocation = JSON.parse(location);
+    const parsedLocation = {
+        lat: 10.52766043368002,
+        lng: 76.99378069675245,
+    };
+
     const parsedFilters = JSON.parse(filters);
     const posts = await db.sequelize.query(
         `select posts.id,
@@ -106,8 +110,9 @@ async function getAllPosts(req, res, next) {
 	posts.place_title,
 	posts.description,
 	posts.location,
-	'posts.createdAt',
-	'posts.updatedAt', 
+	created_at,
+    updated_at, 
+    distance,
 	user_profile.mobile AS "user_profile.mobile", 
 	user_profile.username AS "user_profile.username"
 	from (
@@ -123,20 +128,28 @@ select
 	posts.place_title,
 	posts.description,
 	posts.location,
-	'posts.createdAt',
-	'posts.updatedAt',
-	ST_Distance(location,ST_MakePoint(11.127122499999999,78.6568942)) as distance
+	posts.created_at,               
+	posts.updated_at,
+	ST_Distance(location,ST_MakePoint(${parsedLocation.lat},${
+            parsedLocation.lng
+        })) as distance
 from
 	posts as posts) posts inner join 
 	user_profiles as user_profile on
 	posts.mobile = user_profile.mobile
 where
-	posts.distance between 0 and 'Infinity'
-	and posts.product = 'coconut'
-	and posts.quantity between 0 and 'Infinity'
-	and posts.price between 0 and 'Infinity'
+	posts.distance between ${lodashGet(parsedFilters, "distance.min") || 0} and ${
+            lodashGet(parsedFilters, "distance.max") || "'Infinity'"
+        } 
+	${product === "all" ? "" : "and posts.product ='" + product + "' "}
+	and posts.quantity between ${
+        lodashGet(parsedFilters, "quantity.min") || 0
+    } and ${lodashGet(parsedFilters, "quantity.max") || "'Infinity'"}
+	and posts.price between ${lodashGet(parsedFilters, "price.min") || 0} and ${
+            lodashGet(parsedFilters, "price.max") || "'Infinity'"
+        }
 order by
-	distance asc;`,
+	${sortBy};`,
         {
             type: QueryTypes.SELECT,
             nest: true,
