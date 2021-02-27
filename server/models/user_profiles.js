@@ -22,6 +22,11 @@ module.exports = (sequelize, DataTypes) => {
                 unique: true,
             },
             pincode: DataTypes.INTEGER,
+            role: {
+                type: DataTypes.STRING(15),
+                defaultValue: "user",
+                allowNull: false,
+            },
         },
         {
             sequelize,

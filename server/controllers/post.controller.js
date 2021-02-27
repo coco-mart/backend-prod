@@ -155,7 +155,6 @@ order by
             nest: true,
         }
     );
-    console.log(posts);
     res.json({ posts });
 }
 

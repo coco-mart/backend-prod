@@ -14,6 +14,13 @@ router.route("/").patch(
     userCtrl.update
 );
 
+router.route("/").get(
+    expressJwt({
+        secret: config.jwtSecret,
+    }),
+    userCtrl.list
+);
+
 router
     .route("/sendotp")
     .post(validate(paramValidation.sendotp), userCtrl.sendotp);

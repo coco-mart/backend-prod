@@ -80,16 +80,17 @@ async function login(req, res, next) {
                 );
                 next(error);
             } else {
+                const [user, created] = await UserProfile.findOrCreate({
+                    where: { mobile },
+                });
                 const token = jwt.sign(
                     {
                         mobile,
+                        role: user.role,
                         expiresIn: 86400,
                     },
                     config.jwtSecret
                 );
-                const [user, created] = await UserProfile.findOrCreate({
-                    where: { mobile },
-                });
                 console.log("DB OPERTATION DONE", new Date());
                 res.json({ success: true, token, user });
             }
@@ -161,4 +162,5 @@ export default {
     login,
     update,
     verifyUser,
+    list,
 };
