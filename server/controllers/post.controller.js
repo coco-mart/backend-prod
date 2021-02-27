@@ -2,7 +2,7 @@ import { posts as Post } from "../models";
 import { user_profiles as UserProfile } from "../models";
 import { getPlaceInfo } from "./places.controller";
 import httpStatus from "http-status";
-import { Op } from "sequelize";
+import { Op, QueryTypes } from "sequelize";
 import { get as lodashGet } from "lodash";
 import { emptyS3Directory, uploadImages } from "../services/s3.service";
 import APIError from "../helpers/APIError";
@@ -94,62 +94,55 @@ async function getAllPosts(req, res, next) {
     const { product, location, sortBy, filters } = req.query;
     const parsedLocation = JSON.parse(location);
     const parsedFilters = JSON.parse(filters);
-    const posts = await Post.findAll({
-        where: {
-            // mobile: {
-            //     [Op.ne]: mobile,
-            // },
-            product:
-                !product || product == "all"
-                    ? {
-                          [Op.not]: product,
-                      }
-                    : product,
-            quantity: {
-                [Op.between]: [
-                    lodashGet(parsedFilters, "quantity.min") || 0,
-                    lodashGet(parsedFilters, "quantity.max") || Infinity,
-                ],
-            },
-            price: {
-                [Op.between]: [
-                    lodashGet(parsedFilters, "price.min") || 0,
-                    lodashGet(parsedFilters, "price.max") || Infinity,
-                ],
-            },
-        },
-        attributes: {
-            include: [
-                [
-                    db.Sequelize.fn(
-                        "ST_Distance",
-                        db.Sequelize.col("location"),
-                        db.Sequelize.fn(
-                            "ST_MakePoint",
-                            parsedLocation.lat,
-                            parsedLocation.lng
-                        )
-                    ),
-                    "distance",
-                ],
-            ],
-            where: {
-                distance: {
-                    [Op.between]: [
-                        lodashGet(parsedFilters, "distance.min") || 0,
-                        lodashGet(parsedFilters, "distance.max") || Infinity,
-                    ],
-                },
-            },
-        },
-        include: {
-            model: UserProfile,
-            attributes: ["username"],
-        },
-        order: sortBy.includes("created")
-            ? [[sortBy.split(" ")]]
-            : db.Sequelize.literal(sortBy),
-    });
+    const posts = await db.sequelize.query(
+        `select posts.id,
+	posts.mobile,
+	posts.product,
+	posts.quantity,
+	posts.price,
+	posts.images,
+	posts.pincode,
+	posts.place_id,
+	posts.place_title,
+	posts.description,
+	posts.location,
+	'posts.createdAt',
+	'posts.updatedAt', 
+	user_profile.mobile AS "user_profile.mobile", 
+	user_profile.username AS "user_profile.username"
+	from (
+select
+	posts.id,
+	posts.mobile,
+	posts.product,
+	posts.quantity,
+	posts.price,
+	posts.images,
+	posts.pincode,
+	posts.place_id,
+	posts.place_title,
+	posts.description,
+	posts.location,
+	'posts.createdAt',
+	'posts.updatedAt',
+	ST_Distance(location,ST_MakePoint(11.127122499999999,78.6568942)) as distance
+from
+	posts as posts) posts inner join 
+	user_profiles as user_profile on
+	posts.mobile = user_profile.mobile
+where
+	posts.distance between 0 and 'Infinity'
+	and posts.product = 'coconut'
+	and posts.quantity between 0 and 'Infinity'
+	and posts.price between 0 and 'Infinity'
+order by
+	distance asc;`,
+        {
+            type: QueryTypes.SELECT,
+            nest: true,
+        }
+    );
+    console.log(posts);
     res.json({ posts });
 }
 
