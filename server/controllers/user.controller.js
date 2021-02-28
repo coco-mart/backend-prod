@@ -1,7 +1,8 @@
 import httpStatus from "http-status";
-import User from "../models/user_profiles";
 import { user_profiles as UserProfile } from "../models";
 import { otp_transactions as OtpTransaction } from "../models";
+import { posts as Posts } from "../models";
+
 import otpService from "../services/otp.service";
 import APIError from "../helpers/APIError";
 import jwt from "jsonwebtoken";
@@ -125,7 +126,7 @@ async function update(req, res, next) {
  */
 function list(req, res, next) {
     const { limit = 50 } = req.query;
-    User.findAll({ limit })
+    UserProfile.findAll({ limit, include: Posts })
         .then((users) => res.json(users))
         .catch((e) => next(e));
 }
