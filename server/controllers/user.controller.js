@@ -1,7 +1,6 @@
 import httpStatus from "http-status";
 import { user_profiles as UserProfile } from "../models";
 import { otp_transactions as OtpTransaction } from "../models";
-import { posts as Posts } from "../models";
 
 import otpService from "../services/otp.service";
 import APIError from "../helpers/APIError";
