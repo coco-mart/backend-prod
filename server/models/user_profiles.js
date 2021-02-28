@@ -1,6 +1,6 @@
 "use strict";
 const { Model } = require("sequelize");
-const posts = require("./posts");
+const posts = require("../models");
 module.exports = (sequelize, DataTypes) => {
     class user_profiles extends Model {
         /**
@@ -10,6 +10,9 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate(models) {
             // define association here
+            user_profiles.hasMany(models.posts, {
+                foreignKey: "mobile",
+            });
         }
     }
     user_profiles.init(
@@ -26,6 +29,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING(15),
                 defaultValue: "user",
                 allowNull: false,
+            },
+            is_blocked: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
             },
         },
         {

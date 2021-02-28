@@ -132,7 +132,7 @@ select
 	posts.updated_at,
 	ST_Distance(location,ST_MakePoint(${parsedLocation.lat},${
             parsedLocation.lng
-        })) as distance
+        }))/1000 as distance
 from
 	posts as posts) posts inner join 
 	user_profiles as user_profile on
