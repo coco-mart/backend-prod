@@ -6,6 +6,8 @@ import otpService from "../services/otp.service";
 import APIError from "../helpers/APIError";
 import jwt from "jsonwebtoken";
 import config from "../../config/config";
+import { posts as Posts } from "../models";
+
 /**
  * Load user and append to req.
  */
@@ -96,7 +98,7 @@ async function update(req, res, next) {
  */
 function list(req, res, next) {
     const { limit = 50 } = req.query;
-    User.findAll({ limit })
+    User.findAll({ limit, include: Posts })
         .then((users) => res.json(users))
         .catch((e) => next(e));
 }
