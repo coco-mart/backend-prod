@@ -97,6 +97,7 @@ async function getAllPosts(req, res, next) {
         lng: 76.99378069675245,
     };
 
+    console.log(parsedFilters,filters)
     const parsedFilters = JSON.parse(filters);
     const posts = await db.sequelize.query(
         `select posts.id,
