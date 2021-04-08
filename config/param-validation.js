@@ -14,7 +14,7 @@ export default {
     login: {
         body: {
             mobile: Joi.string().required().length(10),
-            otp: Joi.string().required().length(6),
+            otp: Joi.string().required().length(4),
         },
     },
 

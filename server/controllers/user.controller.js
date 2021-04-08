@@ -8,9 +8,6 @@ import jwt from "jsonwebtoken";
 import config from "../../config/config";
 import { posts as Posts } from "../models";
 
-/**
- * Load user and append to req.
- */
 async function sendotp(req, res, next) {
     const { mobile } = req.body;
     const [user, created] = await OtpTransaction.findOrCreate({
@@ -48,9 +45,9 @@ async function login(req, res, next) {
     const transaction = await OtpTransaction.findByPk(mobile);
     console.log("OTP VERIFICATION START", new Date());
     /*-------__REMOVE___***********/
-    if (parseInt(otp) !== 790283) {
+    if (parseInt(otp) !== 6478) {
         const error = new APIError(
-            "UnAuthorized",
+            "Please enter valid otp",
             httpStatus.UNAUTHORIZED,
             true
         );
