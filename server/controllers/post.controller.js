@@ -74,13 +74,12 @@ async function getPosts(req, res, next) {
  */
 
 async function getPostById(req, res, next) {
-    const { mobile } = req.user;
     const { id } = req.params;
     const post = await Post.findOne({
         where: {
             id,
-            mobile,
         },
+        include: UserProfile,
     });
     res.json({ post });
 }
@@ -97,6 +96,7 @@ async function getAllPosts(req, res, next) {
         lng: 76.99378069675245,
     };
 
+    console.log(parsedFilters, filters);
     const parsedFilters = JSON.parse(filters);
     const posts = await db.sequelize.query(
         `select posts.id,
