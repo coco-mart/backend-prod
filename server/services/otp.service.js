@@ -2,35 +2,15 @@ import Axios from "axios";
 import config from "../../config/config";
 import APIError from "../helpers/APIError";
 
-const BASE_URL = "https://d7networks.com/api/verifier/";
-const SMS = "{code} is the OTP for Cocomart login";
-const axiosConfig = {
-    headers: {
-        Authorization: `Token ${config.d7Api}`,
-    },
-};
-
 const sendotp = (mobile) => {
-    return Axios.post(
-        `${BASE_URL + "send"}`,
-        {
-            mobile: "91" + mobile,
-            message: SMS,
-            expiry: config.OTP_EXPIRY,
-        },
-        axiosConfig
+    return Axios.get(
+        `https://2factor.in/API/V1/${config.smsApi}/SMS/${mobile}/AUTOGEN`
     );
 };
 
-const verify = (mobile, otp_id, otp_code) => {
+const verify = (otp_id, otp_code) => {
     return Axios.post(
-        `${BASE_URL + "verify"}`,
-        {
-            mobile: "91" + mobile,
-            otp_id,
-            otp_code,
-        },
-        axiosConfig
+        `https://2factor.in/API/V1/${config.smsApi}/SMS/VERIFY/${otp_id}/${otp_code}`
     );
 };
 
