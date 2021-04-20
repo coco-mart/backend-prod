@@ -13,11 +13,6 @@ async function sendotp(req, res, next) {
     const [user, created] = await OtpTransaction.findOrCreate({
         where: { mobile },
     });
-    /*-------__REMOVE___***********/
-    res.json({ success: true });
-    return;
-    /*-------__REMOVE___***********/
-
     if (user.attempts >= 5)
         next(
             new APIError(
@@ -30,7 +25,8 @@ async function sendotp(req, res, next) {
         otpService
             .sendotp(mobile)
             .then(async ({ data }) => {
-                user.otp_id = data.otp_id;
+                console.log(data);
+                user.otp_id = data.Details;
                 user.attempts = user.attempts + 1;
                 user.save();
                 res.json({ success: true, message: "OTP sent successfully" });
@@ -43,33 +39,8 @@ async function sendotp(req, res, next) {
 async function login(req, res, next) {
     const { mobile, otp } = req.body;
     const transaction = await OtpTransaction.findByPk(mobile);
-    console.log("OTP VERIFICATION START", new Date());
-    /*-------__REMOVE___***********/
-    if (parseInt(otp) !== 6478) {
-        const error = new APIError(
-            "Please enter valid otp",
-            httpStatus.UNAUTHORIZED,
-            true
-        );
-        next(error);
-    }
-    const [user, created] = await UserProfile.findOrCreate({
-        where: { mobile },
-    });
-    const token = jwt.sign(
-        {
-            mobile,
-            role: user.role,
-            expiresIn: 86400,
-        },
-        config.jwtSecret
-    );
-    console.log("DB OPERTATION DONE", new Date());
-    res.json({ success: true, token, user });
-    return;
-    /*-------__REMOVE___***********/
     otpService
-        .verify(mobile, transaction.otp_id, otp)
+        .verify(transaction.otp_id, otp)
         .then(async ({ data }) => {
             console.log("OTP VERIFIED", new Date());
             if (data.status === "failed") {
@@ -95,7 +66,10 @@ async function login(req, res, next) {
                 res.json({ success: true, token, user });
             }
         })
-        .catch((err) => next(err));
+        .catch((err) => {
+            console.log(err);
+            next(err);
+        });
 }
 
 /**
