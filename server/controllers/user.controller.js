@@ -14,7 +14,7 @@ async function sendotp(req, res, next) {
     const [user, created] = await OtpTransaction.findOrCreate({
         where: { mobile },
     });
-    res.json({ success: true, message: "OTP sent successfully" });
+    res.json({ code: 200, message: "OTP sent successfully" });
     return;
     if (user.attempts >= 5)
         next(
@@ -32,7 +32,7 @@ async function sendotp(req, res, next) {
                 user.otp_id = data.Details;
                 user.attempts = user.attempts + 1;
                 user.save();
-                res.json({ success: true, message: "OTP sent successfully" });
+                res.json({ code: 200, message: "OTP sent successfully" });
             })
             .catch((e) => {
                 next(e);
@@ -55,7 +55,7 @@ async function login(req, res, next) {
             config.jwtSecret
         );
         console.log("DB OPERTATION DONE", new Date());
-        res.json({ success: true, token, user });
+        res.json({ code: 200, token, user });
     }
     otpService
         .verify(transaction.otp_id, otp)
@@ -81,7 +81,7 @@ async function login(req, res, next) {
                     config.jwtSecret
                 );
                 console.log("DB OPERTATION DONE", new Date());
-                res.json({ success: true, token, user });
+                res.json({ code: 200, token, user });
             }
         })
         .catch((err) => {
@@ -115,7 +115,7 @@ async function uploadImage(req, res, next) {
         const { Location } = await uploadFile(user.mobile, req.file);
         dbUser.picture = Location;
         await dbUser.save();
-        res.json({ success: true, message: "Image upload success!" });
+        res.json({ code: 200, message: "Image upload success!" });
     } catch (error) {
         next(error);
     }
