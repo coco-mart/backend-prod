@@ -4,10 +4,13 @@ import { getPlaceInfo } from "./places.controller";
 import httpStatus from "http-status";
 import { Op, QueryTypes } from "sequelize";
 import { get as lodashGet } from "lodash";
-import { emptyS3Directory, uploadImages } from "../services/s3.service";
+import {
+    deleteImages,
+    emptyS3Directory,
+    uploadImages,
+} from "../services/s3.service";
 import APIError from "../helpers/APIError";
 import db from "../models/index";
-import { filter } from "bluebird";
 /*
  * Create new post
  */
@@ -35,16 +38,22 @@ async function create(req, res, next) {
             };
             processedData.location = point;
         })
-        .catch((err) => next(err));
+        .catch((err) => {
+            console.log(err);
+            next(err);
+        });
 
     let createdPost = await Post.create(processedData);
 
-    if (createdPost.id) {
+    if (createdPost.id && req.files?.length) {
         let imageLocations = await Promise.all(
             uploadImages(mobile, createdPost.id, req.files)
         );
         imageLocations = imageLocations.map(({ Location }) => Location);
         createdPost.images = imageLocations;
+        createdPost = await createdPost.save();
+        res.json({ createdPost });
+    } else if (createdPost.id) {
         createdPost = await createdPost.save();
         res.json({ createdPost });
     } else {
@@ -63,8 +72,11 @@ async function create(req, res, next) {
  */
 async function getPosts(req, res, next) {
     const { mobile } = req.user;
+    const { offset = 0, limit = null } = req.query;
     const posts = await Post.findAll({
         where: { mobile },
+        offset,
+        limit,
     });
     res.json({ posts });
 }
@@ -89,15 +101,21 @@ async function getPostById(req, res, next) {
  */
 
 async function getAllPosts(req, res, next) {
-    const { product, location, sortBy, filters } = req.query;
-    // const parsedLocation = JSON.parse(location);
-    const parsedLocation = {
-        lat: 10.52766043368002,
-        lng: 76.99378069675245,
-    };
+    const {
+        product,
+        minQuantity,
+        maxQuantity,
+        minPrice,
+        maxPrice,
+        minDistance,
+        maxDistance,
+        lat,
+        lng,
+        sortBy,
+        limit,
+        offset,
+    } = req.query;
 
-    console.log(parsedFilters, filters);
-    const parsedFilters = JSON.parse(filters);
     const posts = await db.sequelize.query(
         `select posts.id,
 	posts.mobile,
@@ -130,26 +148,22 @@ select
 	posts.location,
 	posts.created_at,               
 	posts.updated_at,
-	ST_Distance(location,ST_MakePoint(${parsedLocation.lat},${
-            parsedLocation.lng
+	ST_Distance(location,ST_MakePoint(${lat || 11.0168},${
+            lng || 76.9558
         }))/1000 as distance
 from
 	posts as posts) posts inner join 
 	user_profiles as user_profile on
 	posts.mobile = user_profile.mobile
 where
-	posts.distance between ${lodashGet(parsedFilters, "distance.min") || 0} and ${
-            lodashGet(parsedFilters, "distance.max") || "'Infinity'"
-        } 
+	posts.distance between ${minDistance || 0} and ${maxDistance || "'Infinity'"} 
 	${product === "all" ? "" : "and posts.product ='" + product + "' "}
-	and posts.quantity between ${
-        lodashGet(parsedFilters, "quantity.min") || 0
-    } and ${lodashGet(parsedFilters, "quantity.max") || "'Infinity'"}
-	and posts.price between ${lodashGet(parsedFilters, "price.min") || 0} and ${
-            lodashGet(parsedFilters, "price.max") || "'Infinity'"
+	and posts.quantity between ${minQuantity || 0} and ${
+            maxQuantity || "'Infinity'"
         }
+	and posts.price between ${minPrice || 0} and ${maxPrice || "'Infinity'"}
 order by
-	${sortBy};`,
+	${sortBy} ${limit ? "LIMIT " + limit + " " : ""} OFFSET ${offset || 0};`,
         {
             type: QueryTypes.SELECT,
             nest: true,
@@ -168,29 +182,41 @@ async function update(req, res, next) {
         mobile,
     };
     const { id } = req.params;
-    await getPlaceInfo(processedData.place_id)
-        .then(({ data }) => {
-            const { address_components, geometry } = data.result;
-            const locality = address_components.find((component) =>
-                component.types.includes("locality")
-            ).long_name;
-            processedData.place_title = locality || title;
-            processedData.lat = geometry.location.lat;
-            processedData.lng = geometry.location.lng;
-        })
-        .catch((err) => next(err));
-    await Post.update(processedData, {
-        where: {
-            id,
-            mobile,
-        },
-    })
-        .then((data) => {
-            if (data[0]) res.json(data);
-            else
-                next(new APIError("Bad Request", httpStatus.BAD_REQUEST, true));
-        })
-        .catch((err) => next(err));
+    try {
+        const postToDelete = await Post.findByPk(id);
+        processedData.images = [...postToDelete.images];
+        await getPlaceInfo(processedData.place_id)
+            .then(({ data }) => {
+                const { address_components, geometry } = data.result;
+                const locality = address_components.find((component) =>
+                    component.types.includes("locality")
+                ).long_name;
+                processedData.place_title = locality || title;
+                processedData.lat = geometry.location.lat;
+                processedData.lng = geometry.location.lng;
+            })
+            .catch((err) => next(err));
+        if (processedData?.images_to_remove?.length) {
+            await deleteImages(processedData.images_to_remove);
+            processedData.images = [...processedData.images].filter(
+                (img) => !processedData.images_to_remove.includes(img)
+            );
+        }
+        if (req.files?.length) {
+            let imageLocations = await Promise.all(
+                uploadImages(mobile, id, req.files)
+            );
+            imageLocations = imageLocations.map(({ Location }) => Location);
+            processedData.images = [...processedData.images, ...imageLocations];
+        }
+        const [updated] = await Post.update(processedData, {
+            where: { id, mobile },
+        });
+        res.json({ updated });
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
 }
 
 /*

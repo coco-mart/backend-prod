@@ -6,6 +6,14 @@ import expressJwt from "express-jwt";
 import config from "../../config/config";
 const router = express.Router(); // eslint-disable-line new-cap
 
+const multer = require("multer");
+const storage = multer.memoryStorage({
+    destination: function (req, file, callback) {
+        callback(null, "");
+    },
+});
+const singleUpload = multer({ storage: storage }).single("picture");
+
 router.route("/").patch(
     expressJwt({
         secret: config.jwtSecret,
@@ -26,6 +34,14 @@ router
     .post(validate(paramValidation.sendotp), userCtrl.sendotp);
 
 router.route("/login").post(validate(paramValidation.login), userCtrl.login);
+
+router.route("/uploadprofile").post(
+    expressJwt({
+        secret: config.jwtSecret,
+    }),
+    singleUpload,
+    userCtrl.uploadImage
+);
 
 router.route("/verify").get(
     expressJwt({

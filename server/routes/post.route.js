@@ -44,6 +44,7 @@ router
         expressJwt({
             secret: config.jwtSecret,
         }),
+        multipleUpload,
         validate(paramValidation.createPost),
         postCtrl.update
     )

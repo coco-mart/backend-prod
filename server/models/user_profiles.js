@@ -18,6 +18,10 @@ module.exports = (sequelize, DataTypes) => {
     user_profiles.init(
         {
             username: DataTypes.STRING(50),
+            image: {
+                type: DataTypes.TEXT,
+                unique: true,
+            },
             mobile: {
                 primaryKey: true,
                 type: DataTypes.BIGINT,
