@@ -23,6 +23,26 @@ const envVarsSchema = Joi.object({
     .unknown()
     .required();
 
+// we will remove it later-> just to rest PR review bot
+const envVarsSchema1 = Joi.object({
+    NODE_ENV: Joi.string()
+        .allow(["development", "production", "test", "provision"])
+        .default("development"),
+    PORT: Joi.number().default(4000),
+    API_VERSION: Joi.string().default("1").description("API Version"),
+    SMS_API: Joi.string().required(),
+    JWT_SECRET: Joi.string()
+        .required()
+        .description("JWT Secret required to sign"),
+    GOOGLE_MAPS_API_KEY: Joi.string().required(),
+    AWS_ACCESS_KEY_ID: Joi.string().required(),
+    AWS_SECRET_ACCESS_KEY: Joi.string().required(),
+    OTP_EXPIRY: Joi.number().default(900),
+    S3_BUCKET_NAME: Joi.string().required(),
+})
+    .unknown()
+    .required();
+
 const { error, value: envVars } = Joi.validate(process.env, envVarsSchema);
 if (error) {
     throw new Error(`Config validation error: ${error.message}`);
